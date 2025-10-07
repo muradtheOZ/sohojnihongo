@@ -466,42 +466,98 @@ export default function KanaCanvas() {
                   opacity={strokeOpacity}
                 />
 
-                {/* Start marker: solid dot with optional pulsing halo when active and waiting to start */}
+                {/* Start marker: animated directional arrow when waiting to start */}
                 {startCheckpoint && isActive && (
                   <g>
+                    {/* base dot */}
                     <circle
                       cx={startCheckpoint.x}
                       cy={startCheckpoint.y}
-                      r={8}
+                      r={6}
                       fill={strokeColor}
                       stroke="#ffffff"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
                     />
 
-                    {showStartMarker && (
-                      <circle
-                        cx={startCheckpoint.x}
-                        cy={startCheckpoint.y}
-                        r={10}
-                        fill={strokeColor}
-                        opacity={0.25}
-                      >
-                        <animate
-                          attributeName="r"
-                          from="10"
-                          to="26"
-                          dur="1s"
-                          repeatCount="indefinite"
-                        />
-                        <animate
-                          attributeName="opacity"
-                          values="0.4;0"
-                          dur="1s"
-                          repeatCount="indefinite"
-                        />
-                      </circle>
-                    )}
+                    {showStartMarker &&
+                      (() => {
+                        // compute arrow direction using the second checkpoint if available
+                        // Prefer using the SVG path tangent for the most accurate initial direction
+                        let angle = 0;
+                        try {
+                          // Create a temporary SVG path element to sample the path tangent
+                          const svgNS = "http://www.w3.org/2000/svg";
+                          const tmpPath = document.createElementNS(
+                            svgNS,
+                            "path"
+                          );
+                          tmpPath.setAttribute("d", stroke.path);
+                          const total = tmpPath.getTotalLength();
+                          // sample a small distance along the path to estimate the tangent
+                          const sampleDist = Math.min(
+                            8,
+                            Math.max(1, total * 0.01)
+                          );
+                          const p0 = tmpPath.getPointAtLength(0);
+                          const p1 = tmpPath.getPointAtLength(sampleDist);
+                          angle =
+                            (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) /
+                            Math.PI;
+                        } catch {
+                          // Fallback: average next few checkpoints (robust but less accurate)
+                          const checkpoints: Checkpoint[] =
+                            stroke.checkpoints || [];
+                          const subsequent = checkpoints.slice(1, 4); // take up to next 3 checkpoints
+                          let dx = 10;
+                          let dy = 0;
+                          if (subsequent.length > 0) {
+                            const avg = subsequent.reduce(
+                              (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
+                              { x: 0, y: 0 }
+                            );
+                            avg.x = avg.x / subsequent.length;
+                            avg.y = avg.y / subsequent.length;
+                            dx = avg.x - startCheckpoint.x;
+                            dy = avg.y - startCheckpoint.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            // if the averaged vector is too small, fallback to the end checkpoint
+                            if (dist < 2 && endCheckpoint) {
+                              dx = endCheckpoint.x - startCheckpoint.x;
+                              dy = endCheckpoint.y - startCheckpoint.y;
+                            }
+                          } else if (endCheckpoint) {
+                            dx = endCheckpoint.x - startCheckpoint.x;
+                            dy = endCheckpoint.y - startCheckpoint.y;
+                          }
+
+                          angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+                        }
+
+                        return (
+                          <g
+                            transform={`translate(${startCheckpoint.x}, ${startCheckpoint.y}) rotate(${angle})`}
+                          >
+                            {/* inner group will animate translate along local x-axis so arrow moves in direction of stroke */}
+                            <g>
+                              {/* arrow shape anchored at origin (0,0) pointing right before rotation */}
+                              <path
+                                d="M 0 -6 L 14 0 L 0 6 L 4 0 Z"
+                                fill={strokeColor}
+                                opacity="0.95"
+                              />
+                              {/* animate the inner group's translate along x only (local axis after rotation) */}
+                              <animateTransform
+                                attributeName="transform"
+                                type="translate"
+                                values="0 0; 10 0; 0 0"
+                                dur="1.5s"
+                                repeatCount="indefinite"
+                              />
+                            </g>
+                          </g>
+                        );
+                      })()}
                   </g>
                 )}
 
@@ -530,13 +586,13 @@ export default function KanaCanvas() {
                           attributeName="r"
                           from="12"
                           to="30"
-                          dur="1s"
+                          dur="1.5s"
                           repeatCount="indefinite"
                         />
                         <animate
                           attributeName="opacity"
                           values="0.3;0"
-                          dur="1s"
+                          dur="1.5s"
                           repeatCount="indefinite"
                         />
                       </circle>

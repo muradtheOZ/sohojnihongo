@@ -23,7 +23,9 @@ export default function KanaCanvas() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [isCorrectStroke, setIsCorrectStroke] = useState<boolean | null>(null);
-  const [completedStrokes, setCompletedStrokes] = useState<Set<number>>(new Set());
+  const [completedStrokes, setCompletedStrokes] = useState<Set<number>>(
+    new Set()
+  );
   const [message, setMessage] = useState("");
 
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -85,8 +87,28 @@ export default function KanaCanvas() {
         return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
       };
 
+      // Get start and end checkpoints
+      const startCheckpoint = expectedCheckpoints[0];
+      const endCheckpoint = expectedCheckpoints[expectedCheckpoints.length - 1];
+      const startPointUser = userPath[0];
+      const endPointUser = userPath[userPath.length - 1];
+
+      // Validate start point - must be close to first checkpoint
+      const startTolerance = 30; // pixels
+      const startDistance = distance(startPointUser, startCheckpoint);
+      if (startDistance > startTolerance) {
+        return false; // Stroke doesn't start near the correct point
+      }
+
+      // Validate end point - must be close to last checkpoint
+      const endTolerance = 30; // pixels
+      const endDistance = distance(endPointUser, endCheckpoint);
+      if (endDistance > endTolerance) {
+        return false; // Stroke doesn't end near the correct point
+      }
+
       // Check if user's stroke passes near enough to each checkpoint
-      const tolerance = 7; // pixels - how close the user needs to be to checkpoints
+      const tolerance = 20; // pixels - how close the user needs to be to checkpoints
       let passedCheckpoints = 0;
 
       for (const checkpoint of expectedCheckpoints) {
@@ -105,8 +127,8 @@ export default function KanaCanvas() {
         }
       }
 
-      // User needs to pass at least 60% of checkpoints for the stroke to be valid
-      const requiredCheckpoints = Math.ceil(expectedCheckpoints.length * 0.6);
+      // User needs to pass at least 80% of checkpoints for the stroke to be valid
+      const requiredCheckpoints = Math.ceil(expectedCheckpoints.length * 0.8);
       return passedCheckpoints >= requiredCheckpoints;
     },
     []
@@ -140,15 +162,44 @@ export default function KanaCanvas() {
 
       // Real stroke validation against checkpoints
       const currentStroke = character.strokes[currentStrokeIndex];
-      const isValidStroke = validateStrokeAgainstCheckpoints(
+      const validationResult = validateStrokeAgainstCheckpoints(
         points,
         currentStroke.checkpoints
       );
 
-      if (!isValidStroke) {
-        setMessage(
-          "Stroke doesn't match the guide. Try to follow the gray line more closely."
-        );
+      if (!validationResult) {
+        // Get more specific error message
+        const userPath = points.map((point: Point) => ({
+          x: point.x,
+          y: point.y,
+        }));
+        const startCheckpoint = currentStroke.checkpoints[0];
+        const endCheckpoint =
+          currentStroke.checkpoints[currentStroke.checkpoints.length - 1];
+        const startPointUser = userPath[0];
+        const endPointUser = userPath[userPath.length - 1];
+
+        const distance = (
+          p1: { x: number; y: number },
+          p2: { x: number; y: number }
+        ) => {
+          return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+        };
+
+        const startDistance = distance(startPointUser, startCheckpoint);
+        const endDistance = distance(endPointUser, endCheckpoint);
+
+        let errorMessage = "Stroke doesn't match the guide. ";
+        if (startDistance > 30) {
+          errorMessage =
+            "Start your stroke closer to the beginning of the guide.";
+        } else if (endDistance > 30) {
+          errorMessage = "End your stroke closer to the end of the guide.";
+        } else {
+          errorMessage = "Try to follow the guide path more closely.";
+        }
+
+        setMessage(errorMessage);
         setIsCorrectStroke(false);
         // Reset validation states to enable drawing again
         setIsValidating(false);
@@ -161,7 +212,7 @@ export default function KanaCanvas() {
       const isCompleted = currentStrokeIndex === character.strokes.length - 1;
 
       // Mark this stroke as completed
-      setCompletedStrokes(prev => new Set([...prev, currentStrokeIndex]));
+      setCompletedStrokes((prev) => new Set([...prev, currentStrokeIndex]));
 
       // Clear the drawn line immediately
       canvasRef.current?.clearCanvas();

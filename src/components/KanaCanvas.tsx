@@ -5,6 +5,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
 import { HiraganaCharacter, Checkpoint } from "@/app/data/hiragana";
 import hiraganaData from "@/app/data/hiragana";
+import OverlayArrowButton from "./OverlayArrowButton";
 
 const CANVAS_WIDTH = 400;
 const CANVAS_HEIGHT = 400;
@@ -20,7 +21,9 @@ export default function KanaCanvas() {
   const [currentStrokeIndex, setCurrentStrokeIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [isCorrectStroke, setIsCorrectStroke] = useState<boolean | null>(null);
+  const [completedStrokes, setCompletedStrokes] = useState<Set<number>>(new Set());
   const [message, setMessage] = useState("");
 
   const canvasRef = useRef<ReactSketchCanvasRef>(null);
@@ -83,7 +86,7 @@ export default function KanaCanvas() {
       };
 
       // Check if user's stroke passes near enough to each checkpoint
-      const tolerance = 30; // pixels - how close the user needs to be to checkpoints
+      const tolerance = 7; // pixels - how close the user needs to be to checkpoints
       let passedCheckpoints = 0;
 
       for (const checkpoint of expectedCheckpoints) {
@@ -128,7 +131,10 @@ export default function KanaCanvas() {
       if (points.length < 5) {
         setMessage("Stroke too short. Draw a longer line.");
         setIsCorrectStroke(false);
-        setTimeout(() => canvasRef.current?.undo(), 500);
+        // Reset validation states to enable drawing again
+        setIsValidating(false);
+        hasValidatedCurrentStroke.current = false;
+        setTimeout(() => canvasRef.current?.clearCanvas(), 500);
         return;
       }
 
@@ -144,22 +150,52 @@ export default function KanaCanvas() {
           "Stroke doesn't match the guide. Try to follow the gray line more closely."
         );
         setIsCorrectStroke(false);
-        setTimeout(() => canvasRef.current?.undo(), 1000);
+        // Reset validation states to enable drawing again
+        setIsValidating(false);
+        hasValidatedCurrentStroke.current = false;
+        setTimeout(() => canvasRef.current?.clearCanvas(), 1000);
         return;
       }
 
       // Stroke is valid
       const isCompleted = currentStrokeIndex === character.strokes.length - 1;
-      setMessage(
-        isCompleted
-          ? `🎉 Character completed! Great job!`
-          : `Perfect! Stroke ${currentStrokeIndex + 1} completed.`
-      );
-      setIsCorrectStroke(true);
+
+      // Mark this stroke as completed
+      setCompletedStrokes(prev => new Set([...prev, currentStrokeIndex]));
+
+      // Clear the drawn line immediately
+      canvasRef.current?.clearCanvas();
+      setIsValidating(false); // Stop showing light blue guide
+
+      // Then show the dark green guide after a brief moment
+      setTimeout(() => {
+        setIsCorrectStroke(true);
+      }, 100);
+
+      if (isCompleted) {
+        // Character completed - show completion message
+        setMessage(`🎉 Character completed! Great job!`);
+      } else {
+        // Move to next stroke automatically without success message
+        // Auto-advance to next stroke after clearing
+        setTimeout(() => {
+          // Ensure canvas is completely clear for next stroke
+          canvasRef.current?.clearCanvas();
+          setCurrentStrokeIndex(currentStrokeIndex + 1);
+          hasValidatedCurrentStroke.current = false;
+          setIsDrawing(false);
+          setIsValidating(false);
+          setMessage("Draw the next stroke!");
+          setIsCorrectStroke(null);
+        }, 100);
+      }
     } catch (error) {
       console.error("Validation error:", error);
       setMessage("Error validating stroke. Try again.");
       setIsCorrectStroke(false);
+      // Reset validation states to enable drawing again
+      setIsValidating(false);
+      hasValidatedCurrentStroke.current = false;
     }
   }, [character, currentStrokeIndex, validateStrokeAgainstCheckpoints]);
 
@@ -182,21 +218,22 @@ export default function KanaCanvas() {
       return;
     }
 
-    setIsDrawing(false);
-    setMessage("Checking stroke...");
+    setIsValidating(true); // Set validation state FIRST to keep guide light
+    setIsDrawing(false); // Then set drawing to false
+    // Keep the "Drawing..." message until validation completes
 
     // Clear any existing timeout
     if (strokeEndTimeoutRef.current) {
       clearTimeout(strokeEndTimeoutRef.current);
     }
 
-    // Wait a bit then validate
+    // Wait a bit then validate (reduced time for faster feedback)
     strokeEndTimeoutRef.current = setTimeout(() => {
       if (!hasValidatedCurrentStroke.current) {
         hasValidatedCurrentStroke.current = true;
         validateStroke();
       }
-    }, 300);
+    }, 150);
   }, [isDrawing, validateStroke]);
 
   // Clear canvas
@@ -209,16 +246,11 @@ export default function KanaCanvas() {
     hasValidatedCurrentStroke.current = false;
     canvasRef.current?.clearCanvas();
     setIsDrawing(false);
+    setIsValidating(false);
+    setCompletedStrokes(new Set()); // Reset completed strokes
     setMessage("Draw the first stroke!");
     setIsCorrectStroke(null);
   }, []);
-
-  // Next stroke
-  const handleNextStroke = useCallback(() => {
-    setCurrentStrokeIndex(currentStrokeIndex + 1);
-    handleClear();
-    setMessage("Draw the next stroke!");
-  }, [currentStrokeIndex, handleClear]);
 
   // Next character
   const handleNextCharacter = useCallback(() => {
@@ -303,21 +335,23 @@ export default function KanaCanvas() {
         </div>
       </div>
 
-      {/* Message */}
-      {message && (
-        <div
-          role="alert"
-          className={`alert ${
-            isCorrectStroke === true
-              ? "alert-success"
-              : isCorrectStroke === false
-              ? "alert-error"
-              : "alert-info"
-          } shadow-md`}
-        >
-          <span>{message}</span>
-        </div>
-      )}
+      {/* Message - Fixed height container to prevent layout shifts */}
+      <div className="h-16 flex items-center justify-center">
+        {message && (
+          <div
+            role="alert"
+            className={`alert ${
+              isCorrectStroke === true
+                ? "alert-success"
+                : isCorrectStroke === false
+                ? "alert-error"
+                : "alert-info"
+            } shadow-md transition-all duration-200`}
+          >
+            <span>{message}</span>
+          </div>
+        )}
+      </div>
 
       {/* Canvas */}
       <div
@@ -333,12 +367,27 @@ export default function KanaCanvas() {
             let strokeColor = "#e5e7eb"; // Future strokes
             let strokeOpacity = "0.3";
 
-            if (index < currentStrokeIndex) {
+            // Explicitly completed strokes are always green
+            if (completedStrokes.has(index)) {
               strokeColor = "#10b981"; // Completed strokes
-              strokeOpacity = "0.6";
+              strokeOpacity = "0.8"; // Dark green for completed strokes
             } else if (index === currentStrokeIndex) {
-              strokeColor = "#3b82f6"; // Current stroke
-              strokeOpacity = isDrawing ? "0.2" : "0.8";
+              // Check if current stroke is completed
+              if (isCorrectStroke === true) {
+                strokeColor = "#10b981"; // Completed stroke (green)
+                strokeOpacity = "0.9"; // Very dark green for just completed stroke
+              } else if (
+                isDrawing ||
+                isValidating ||
+                hasValidatedCurrentStroke.current
+              ) {
+                // Light blue guide while user is drawing, validating, or has just finished
+                strokeColor = "#3b82f6"; // Current active stroke (blue)
+                strokeOpacity = "0.1"; // Very light while drawing/validating
+              } else {
+                strokeColor = "#3b82f6"; // Current active stroke (blue)
+                strokeOpacity = "0.8"; // Visible when not drawing
+              }
             }
 
             return (
@@ -366,7 +415,7 @@ export default function KanaCanvas() {
                 opacity="0.9"
               />
               <path
-                d="M 355 40 L 365 50 L 385 30"
+                d="M 340 50 L 348 58 L 365 42"
                 stroke="white"
                 strokeWidth="4"
                 strokeLinecap="round"
@@ -388,28 +437,33 @@ export default function KanaCanvas() {
             width={String(CANVAS_WIDTH)}
             height={String(CANVAS_HEIGHT)}
             strokeWidth={6}
-            strokeColor="#1e40af"
+            strokeColor="#3b82f6"
             canvasColor="transparent"
             className="w-full h-full rounded-lg"
             onStroke={handleDrawStart}
             withTimestamp={false}
             style={{ width: "100%", height: "100%" }}
           />
+
+          {/* Disable overlay during validation */}
+          {(isValidating || isCorrectStroke === true) && (
+            <div className="absolute top-0 left-0 w-full h-full bg-transparent cursor-not-allowed z-10" />
+          )}
         </div>
+
+        {/* Mobile Next Character Arrow Overlay */}
+        <OverlayArrowButton
+          onClick={handleNextCharacter}
+          position="middle-right"
+          size="md"
+          ariaLabel="Next Character"
+          show={isCorrectStroke === true && isLastStroke}
+          hideOnDesktop={true}
+        />
       </div>
 
-      {/* Controls */}
-      <div className="flex gap-4 w-full justify-center">
-        <button className="btn btn-warning" onClick={handleClear}>
-          Clear
-        </button>
-
-        {isCorrectStroke === true && !isLastStroke && (
-          <button className="btn btn-primary" onClick={handleNextStroke}>
-            Next Stroke
-          </button>
-        )}
-
+      {/* Controls - Next Character for Desktop */}
+      <div className="hidden md:flex gap-4 w-full justify-center">
         {isCorrectStroke === true && isLastStroke && (
           <button className="btn btn-success" onClick={handleNextCharacter}>
             Next Character

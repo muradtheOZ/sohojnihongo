@@ -53,6 +53,31 @@ const hiraganaData: HiraganaCharacter[] = [
       },
     ],
   },
+  {
+    kana: 'い',
+    romaji: 'i',
+    strokes: [
+      {
+        // Stroke 1: The left, hooked stroke
+        path: 'M 131 91 C 132 114, 137 172, 148 212 C 161 259, 175 313, 199 341 C 219 363, 225 307, 225 275',
+        checkpoints: [
+          { x: 131, y: 91 },   // Start
+          { x: 148, y: 212 },  // Middle of the curve
+          { x: 199, y: 341 },  // Bottom of the curve
+          { x: 225, y: 275 },  // End of the hook
+        ],
+      },
+      {
+        // Stroke 2: The shorter right stroke
+        path: 'M 251 101 C 269 114, 307 146, 315 173 C 322 199, 323 236, 321 252',
+        checkpoints: [
+          { x: 251, y: 101 },  // Start
+          { x: 315, y: 173 },  // Middle of the curve
+          { x: 321, y: 252 },  // End
+        ],
+      },
+    ],
+  },
   // We will add more characters here later.
 ];
 

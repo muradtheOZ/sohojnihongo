@@ -346,7 +346,7 @@ export default function KanaCanvas() {
                 key={index}
                 d={stroke.path}
                 stroke={strokeColor}
-                strokeWidth="4"
+                strokeWidth="8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 fill="none"

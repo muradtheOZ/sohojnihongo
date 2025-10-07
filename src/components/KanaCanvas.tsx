@@ -441,17 +441,109 @@ export default function KanaCanvas() {
               }
             }
 
+            // compute start/end checkpoint positions
+            const startCheckpoint = stroke.checkpoints && stroke.checkpoints[0];
+            const endCheckpoint =
+              stroke.checkpoints &&
+              stroke.checkpoints[stroke.checkpoints.length - 1];
+
+            // Only show markers for the active (current) stroke and when it's not completed
+            const isActive =
+              index === currentStrokeIndex && !completedStrokes.has(index);
+            // Start marker pulses before user starts drawing; end marker pulses while drawing
+            const showStartMarker = isActive && !isDrawing;
+            const showEndMarker = isActive && isDrawing;
+
             return (
-              <path
-                key={index}
-                d={stroke.path}
-                stroke={strokeColor}
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-                opacity={strokeOpacity}
-              />
+              <g key={index} pointerEvents="none">
+                <path
+                  d={stroke.path}
+                  stroke={strokeColor}
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                  opacity={strokeOpacity}
+                />
+
+                {/* Start marker: solid dot with optional pulsing halo when active and waiting to start */}
+                {startCheckpoint && isActive && (
+                  <g>
+                    <circle
+                      cx={startCheckpoint.x}
+                      cy={startCheckpoint.y}
+                      r={8}
+                      fill={strokeColor}
+                      stroke="#ffffff"
+                      strokeWidth={2}
+                      opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
+                    />
+
+                    {showStartMarker && (
+                      <circle
+                        cx={startCheckpoint.x}
+                        cy={startCheckpoint.y}
+                        r={10}
+                        fill={strokeColor}
+                        opacity={0.25}
+                      >
+                        <animate
+                          attributeName="r"
+                          from="10"
+                          to="26"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                        <animate
+                          attributeName="opacity"
+                          values="0.4;0"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                      </circle>
+                    )}
+                  </g>
+                )}
+
+                {/* End marker: ring with pulsing halo while drawing */}
+                {endCheckpoint && isActive && (
+                  <g>
+                    <circle
+                      cx={endCheckpoint.x}
+                      cy={endCheckpoint.y}
+                      r={6}
+                      fill="transparent"
+                      stroke={strokeColor}
+                      strokeWidth={3}
+                      opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
+                    />
+
+                    {showEndMarker && (
+                      <circle
+                        cx={endCheckpoint.x}
+                        cy={endCheckpoint.y}
+                        r={12}
+                        fill={strokeColor}
+                        opacity={0.18}
+                      >
+                        <animate
+                          attributeName="r"
+                          from="12"
+                          to="30"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                        <animate
+                          attributeName="opacity"
+                          values="0.3;0"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                      </circle>
+                    )}
+                  </g>
+                )}
+              </g>
             );
           })}
 

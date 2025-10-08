@@ -5,9 +5,11 @@ import hiraganaData from '@/app/data/hiragana';
 
 export async function GET(
   request: Request,
-  { params }: { params: { char: string } }
+  { params }: { params: Promise<{ char: string }> }
 ) {
-  const character = params.char;
+  // Next.js generated types expect RouteContext.params to be a Promise — await it
+  const paramsObj = await params;
+  const character = paramsObj?.char;
 
   const characterData = hiraganaData.find(
     (h) => h.kana === decodeURIComponent(character)

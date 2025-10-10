@@ -2,6 +2,13 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import {
+  COLOR_PRIMARY,
+  COLOR_ACCENT2,
+  COLOR_SUCCESS,
+  COLOR_MUTED,
+  COLOR_WHITE,
+} from "@/lib/colors";
 import { ReactSketchCanvas, ReactSketchCanvasRef } from "react-sketch-canvas";
 import { HiraganaCharacter, Checkpoint } from "@/app/data/hiragana";
 import hiraganaData from "@/app/data/hiragana";
@@ -204,7 +211,8 @@ export default function KanaCanvas() {
         // Reset validation states to enable drawing again
         setIsValidating(false);
         hasValidatedCurrentStroke.current = false;
-        setTimeout(() => canvasRef.current?.clearCanvas(), 1000);
+        // Small delay to provide an instant visual cue before clearing
+        setTimeout(() => canvasRef.current?.clearCanvas(), 50);
         return;
       }
 
@@ -376,7 +384,10 @@ export default function KanaCanvas() {
 
       {/* Character Display */}
       <div className="text-center">
-        <h1 className="text-6xl font-bold text-primary mb-2">
+        <h1 className="hidden sm:block text-6xl font-bold text-primary mb-2">
+          {character.kana}
+        </h1>
+        <h1 className="sm:hidden text-4xl font-bold text-primary mb-2">
           {character.kana}
         </h1>
         <div className="text-sm text-base-content/70">
@@ -388,20 +399,24 @@ export default function KanaCanvas() {
 
       {/* Message - Fixed height container to prevent layout shifts */}
       <div className="h-16 flex items-center justify-center">
-        {message && (
-          <div
-            role="alert"
-            className={`alert ${
-              isCorrectStroke === true
-                ? "alert-success"
-                : isCorrectStroke === false
-                ? "alert-error"
-                : "alert-info"
-            } shadow-md transition-all duration-200`}
-          >
-            <span>{message}</span>
-          </div>
-        )}
+        {message &&
+          // If this is the initial instruction, show it as an accent-styled CTA so it follows the brand
+          (message === "Draw the first stroke!" && isCorrectStroke === null ? (
+            <button className="btn btn-primary">{message}</button>
+          ) : (
+            <div
+              role="alert"
+              className={`alert ${
+                isCorrectStroke === true
+                  ? "alert-success"
+                  : isCorrectStroke === false
+                  ? "alert-error"
+                  : "alert-info"
+              } shadow-md transition-all duration-200`}
+            >
+              <span>{message}</span>
+            </div>
+          ))}
       </div>
 
       {/* Canvas */}
@@ -415,28 +430,28 @@ export default function KanaCanvas() {
           viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
         >
           {character.strokes.map((stroke, index) => {
-            let strokeColor = "#e5e7eb"; // Future strokes
+            let strokeColor = COLOR_MUTED; // Future strokes (subtle gray)
             let strokeOpacity = "0.3";
 
             // Explicitly completed strokes are always green
             if (completedStrokes.has(index)) {
-              strokeColor = "#10b981"; // Completed strokes
-              strokeOpacity = "0.8"; // Dark green for completed strokes
+              strokeColor = COLOR_ACCENT2; // Completed strokes (Golden Ginkgo Yellow)
+              strokeOpacity = "0.85";
             } else if (index === currentStrokeIndex) {
               // Check if current stroke is completed
               if (isCorrectStroke === true) {
-                strokeColor = "#10b981"; // Completed stroke (green)
-                strokeOpacity = "0.9"; // Very dark green for just completed stroke
+                strokeColor = COLOR_ACCENT2; // Completed stroke (Golden)
+                strokeOpacity = "0.95"; // Very visible when just completed
               } else if (
                 isDrawing ||
                 isValidating ||
                 hasValidatedCurrentStroke.current
               ) {
-                // Light blue guide while user is drawing, validating, or has just finished
-                strokeColor = "#3b82f6"; // Current active stroke (blue)
-                strokeOpacity = "0.1"; // Very light while drawing/validating
+                // Light primary guide while user is drawing/validating
+                strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
+                strokeOpacity = "0.12"; // Very light while drawing/validating
               } else {
-                strokeColor = "#3b82f6"; // Current active stroke (blue)
+                strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
                 strokeOpacity = "0.8"; // Visible when not drawing
               }
             }
@@ -475,7 +490,7 @@ export default function KanaCanvas() {
                       cy={startCheckpoint.y}
                       r={6}
                       fill={strokeColor}
-                      stroke="#ffffff"
+                      stroke={COLOR_WHITE}
                       strokeWidth={1.5}
                       opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
                     />
@@ -579,7 +594,7 @@ export default function KanaCanvas() {
                         cx={endCheckpoint.x}
                         cy={endCheckpoint.y}
                         r={12}
-                        fill={strokeColor}
+                        fill={COLOR_PRIMARY}
                         opacity={0.18}
                       >
                         <animate
@@ -610,8 +625,8 @@ export default function KanaCanvas() {
                 cx={CANVAS_WIDTH - 50}
                 cy="50"
                 r="25"
-                fill="#10b981"
-                opacity="0.9"
+                fill={COLOR_SUCCESS}
+                opacity="0.95"
               />
               <path
                 d="M 340 50 L 348 58 L 365 42"
@@ -636,7 +651,7 @@ export default function KanaCanvas() {
             width={String(CANVAS_WIDTH)}
             height={String(CANVAS_HEIGHT)}
             strokeWidth={6}
-            strokeColor="#3b82f6"
+            strokeColor={COLOR_PRIMARY}
             canvasColor="transparent"
             className="w-full h-full rounded-lg"
             onStroke={handleDrawStart}
@@ -664,7 +679,10 @@ export default function KanaCanvas() {
       {/* Controls - Next Character for Desktop */}
       <div className="hidden md:flex gap-4 w-full justify-center">
         {isCorrectStroke === true && isLastStroke && (
-          <button className="btn btn-success" onClick={handleNextCharacter}>
+          <button
+            className="btn btn-accent btn-primary-custom"
+            onClick={handleNextCharacter}
+          >
             Next Character
           </button>
         )}
@@ -679,7 +697,7 @@ export default function KanaCanvas() {
           </span>
         </div>
         <progress
-          className="progress progress-primary w-full"
+          className="progress progress-primary w-full progress-primary-custom"
           value={currentStrokeIndex + 1}
           max={character.strokes.length}
         ></progress>

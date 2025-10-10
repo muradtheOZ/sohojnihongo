@@ -3,19 +3,94 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Shohoj Nihongo - Autumn-inspired palette */
+  --color-primary: #2d5a88; /* Deep Autumn Sky Blue */
+  --color-secondary: #f5f1e8; /* Warm Beige / Light Tatami */
+  --color-accent-1: #e8743e; /* Burnt Orange / Persimmon */
+  --color-accent-2: #fcca46; /* Golden Ginkgo Yellow */
+  --color-text: #333333; /* Dark Charcoal / Sumi Ink */
+
+  --background: var(--color-secondary);
+  --foreground: var(--color-text);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* In dark mode, keep high contrast but use primary as an accent */
+    --background: #071226;
+    --foreground: #e6eef9;
+    --color-primary: #3b6ea3;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial;
+}
+
+/* Headings and brand text */
+h1,
+h2,
+h3,
+.heading,
+.title {
+  color: var(--color-primary);
+}
+
+/* Primary button style (used by components that don't rely on DaisyUI colors) */
+.btn-primary-custom {
+  background-color: var(--color-accent-1);
+  color: white;
+  border: none;
+}
+
+.btn-primary-custom:hover {
+  background-color: color-mix(in srgb, var(--color-accent-1) 80%, black 20%);
+}
+
+/* Secondary muted button (outline) */
+.btn-secondary-custom {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid rgba(45, 90, 136, 0.12);
+}
+
+/* Progress and success accent */
+.progress-primary-custom {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-2),
+    color-mix(in srgb, var(--color-accent-2) 70%, var(--color-accent-1) 30%)
+  );
+}
+
+/* Links */
+a {
+  color: var(--color-accent-1);
+}
+
+/* Utility for background sections */
+.bg-app-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+}
+
+/* Map some common DaisyUI/Tailwind semantic classes to brand variables */
+/* Keep a few helper classes that use CSS variables directly for bespoke pieces */
+/* .btn-primary-custom: quick CTA class for places where we need a single override */
+.btn-primary-custom {
+  background-color: var(--color-accent-1);
+  color: white;
+  border: none;
+}
+
+.progress-primary-custom {
+  background: linear-gradient(
+    90deg,
+    var(--color-accent-2),
+    color-mix(in srgb, var(--color-accent-2) 70%, var(--color-accent-1) 30%)
+  );
 }

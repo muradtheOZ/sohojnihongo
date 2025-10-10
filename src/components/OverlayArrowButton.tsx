@@ -50,8 +50,6 @@ export default function OverlayArrowButton({
     absolute
     ${positionClasses[position]}
     ${sizeClasses[size]}
-    bg-green-500
-    hover:bg-green-600
     rounded-full
     shadow-lg
     flex
@@ -67,7 +65,7 @@ export default function OverlayArrowButton({
 
   return (
     <button
-      className={`${baseClasses} ${className}`}
+      className={`${baseClasses} btn btn-accent btn-primary-custom ${className}`}
       onClick={onClick}
       aria-label={ariaLabel}
     >

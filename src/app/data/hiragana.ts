@@ -109,12 +109,12 @@ const hiraganaData: HiraganaCharacter[] = [
     romaji: 'e',
     strokes: [
       {
-        // Stroke 1: Scaled and positioned from your trace
-        path: 'M 126 91 C 163 95, 245 114, 273 153',
+        // Stroke 1: Made more horizontal and moved up
+        path: 'M 140 40 C 180 35, 220 45, 250 55',
         checkpoints: [
-          { x: 126, y: 91 }, // Start
-          { x: 245, y: 114 }, // Middle
-          { x: 273, y: 153 }, // End
+          { x: 140, y: 40 }, // Start
+          { x: 180, y: 35 }, // Middle (apex)
+          { x: 250, y: 55 }, // End
         ],
       },
       {

@@ -78,7 +78,94 @@ const hiraganaData: HiraganaCharacter[] = [
       },
     ],
   },
-  // We will add more characters here later.
+  {
+    kana: 'う',
+    romaji: 'u',
+    strokes: [
+      {
+        // Stroke 1: The top dash
+        path: 'M 145 90 C 180 80, 220 85, 255 100',
+        checkpoints: [
+          { x: 145, y: 90 }, // Start
+          { x: 200, y: 82 }, // Middle (apex)
+          { x: 255, y: 100 }, // End
+        ],
+      },
+      {
+        // Stroke 2: The main C-curve
+        path: 'M 110 160 C 140 120, 290 120, 290 180 C 290 270, 200 350, 150 320',
+        checkpoints: [
+          { x: 110, y: 160 }, // Start
+          { x: 200, y: 125 }, // Top of the curve
+          { x: 290, y: 180 }, // Right-most point
+          { x: 200, y: 345 }, // Bottom-most point
+          { x: 150, y: 320 }, // End
+        ],
+      },
+    ],
+  },
+  {
+    kana: 'え',
+    romaji: 'e',
+    strokes: [
+      {
+        // Stroke 1: The top dash
+        path: 'M 140 90 Q 200 80, 260 100',
+        checkpoints: [
+          { x: 140, y: 90 }, // Start
+          { x: 200, y: 80 }, // Middle (apex)
+          { x: 260, y: 100 }, // End
+        ],
+      },
+      {
+        // Stroke 2: The complex zigzag
+        path: 'M 110 160 L 300 130 L 190 260 C 130 330, 260 350, 310 320',
+        checkpoints: [
+          { x: 110, y: 160 }, // Start
+          { x: 300, y: 130 }, // Top-right point
+          { x: 190, y: 260 }, // Middle-left point
+          { x: 260, y: 350 }, // Bottom-middle point
+          { x: 310, y: 320 }, // End
+        ],
+      },
+    ],
+  },
+  // --- NEW DATA FOR 'お' ADDED BELOW ---
+  {
+    kana: 'お',
+    romaji: 'o',
+    strokes: [
+      {
+        // Stroke 1: Horizontal line
+        path: 'M 100 80 H 320',
+        checkpoints: [
+          { x: 100, y: 80 },
+          { x: 210, y: 80 },
+          { x: 320, y: 80 },
+        ],
+      },
+      {
+        // Stroke 2: Vertical line with loop
+        path: 'M 160 30 V 170 C 160 270, 80 270, 80 170 C 80 110, 160 110, 240 170 C 320 230, 280 290, 200 280',
+        checkpoints: [
+          { x: 160, y: 30 },  // Start
+          { x: 160, y: 170 }, // Mid-vertical
+          { x: 80, y: 170 },  // Left of loop
+          { x: 240, y: 170 }, // Right of loop
+          { x: 200, y: 280 }, // End
+        ],
+      },
+      {
+        // Stroke 3: The 'ten' (dash)
+        path: 'M 290 140 C 320 130, 340 160, 310 180',
+        checkpoints: [
+          { x: 290, y: 140 }, // Start
+          { x: 310, y: 180 }, // End
+        ],
+      },
+    ],
+  },
 ];
 
 export default hiraganaData;
+

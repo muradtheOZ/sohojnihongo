@@ -109,23 +109,24 @@ const hiraganaData: HiraganaCharacter[] = [
     romaji: 'e',
     strokes: [
       {
-        // Stroke 1: The top dash
-        path: 'M 140 90 Q 200 80, 260 100',
+        // Stroke 1: Scaled and positioned from your trace
+        path: 'M 126 91 C 163 95, 245 114, 273 153',
         checkpoints: [
-          { x: 140, y: 90 }, // Start
-          { x: 200, y: 80 }, // Middle (apex)
-          { x: 260, y: 100 }, // End
+          { x: 126, y: 91 }, // Start
+          { x: 245, y: 114 }, // Middle
+          { x: 273, y: 153 }, // End
         ],
       },
       {
-        // Stroke 2: The complex zigzag
-        path: 'M 110 160 L 300 130 L 190 260 C 130 330, 260 350, 310 320',
+        // Stroke 2: Scaled and positioned from your trace
+        path: 'M 72 128 C 88 125, 123 116, 142 110 C 160 103, 218 81, 245 71 L 174 162 L 105 235 L 72 274 L 63 288 L 120 253 C 130 244, 155 234, 178 256 C 200 278, 206 291, 206 294 C 221 304, 258 322, 286 318 C 314 314, 332 311, 337 309',
         checkpoints: [
-          { x: 110, y: 160 }, // Start
-          { x: 300, y: 130 }, // Top-right point
-          { x: 190, y: 260 }, // Middle-left point
-          { x: 260, y: 350 }, // Bottom-middle point
-          { x: 310, y: 320 }, // End
+          { x: 72, y: 128 },  // Start
+          { x: 245, y: 71 },  // Top-right point
+          { x: 105, y: 235 }, // Mid-left point
+          { x: 63, y: 288 },  // Bottom-left point
+          { x: 178, y: 256 }, // Mid-curve
+          { x: 337, y: 309 }, // End
         ],
       },
     ],

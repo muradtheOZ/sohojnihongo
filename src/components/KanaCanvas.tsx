@@ -31,7 +31,7 @@ export default function KanaCanvas() {
   const [isValidating, setIsValidating] = useState(false);
   const [isCorrectStroke, setIsCorrectStroke] = useState<boolean | null>(null);
   const [completedStrokes, setCompletedStrokes] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
   const [message, setMessage] = useState("");
 
@@ -89,7 +89,7 @@ export default function KanaCanvas() {
       // Helper function to calculate distance between two points
       const distance = (
         p1: { x: number; y: number },
-        p2: { x: number; y: number }
+        p2: { x: number; y: number },
       ) => {
         return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
       };
@@ -138,7 +138,7 @@ export default function KanaCanvas() {
       const requiredCheckpoints = Math.ceil(expectedCheckpoints.length * 0.8);
       return passedCheckpoints >= requiredCheckpoints;
     },
-    []
+    [],
   );
 
   // Simple stroke validation
@@ -171,7 +171,7 @@ export default function KanaCanvas() {
       const currentStroke = character.strokes[currentStrokeIndex];
       const validationResult = validateStrokeAgainstCheckpoints(
         points,
-        currentStroke.checkpoints
+        currentStroke.checkpoints,
       );
 
       if (!validationResult) {
@@ -188,7 +188,7 @@ export default function KanaCanvas() {
 
         const distance = (
           p1: { x: number; y: number },
-          p2: { x: number; y: number }
+          p2: { x: number; y: number },
         ) => {
           return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
         };
@@ -316,7 +316,7 @@ export default function KanaCanvas() {
     if (!character) return;
 
     const currentIndex = hiraganaData.findIndex(
-      (char) => char.kana === character.kana
+      (char) => char.kana === character.kana,
     );
     const nextIndex = (currentIndex + 1) % hiraganaData.length;
     const nextCharacter = hiraganaData[nextIndex];
@@ -331,7 +331,7 @@ export default function KanaCanvas() {
   const handleCharacterSelect = useCallback(
     (selectedKana: string) => {
       const selectedCharacter = hiraganaData.find(
-        (char) => char.kana === selectedKana
+        (char) => char.kana === selectedKana,
       );
       if (selectedCharacter) {
         setCharacter(selectedCharacter);
@@ -340,7 +340,7 @@ export default function KanaCanvas() {
         setMessage("Draw the first stroke!");
       }
     },
-    [handleClear]
+    [handleClear],
   );
 
   if (isLoading) {
@@ -363,344 +363,353 @@ export default function KanaCanvas() {
   const isLastStroke = currentStrokeIndex === character.strokes.length - 1;
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4 w-full max-w-lg mx-auto">
-      {/* Character Selector */}
-      <div className="form-control w-full max-w-xs">
-        <label className="label">
-          <span className="label-text">Select Character</span>
-        </label>
-        <select
-          className="select select-bordered"
-          value={character.kana}
-          onChange={(e) => handleCharacterSelect(e.target.value)}
-        >
-          {hiraganaData.map((char) => (
-            <option key={char.kana} value={char.kana}>
-              {char.kana} ({char.romaji})
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Character Display */}
-      <div className="text-center">
-        <h1 className="hidden sm:block text-6xl font-bold text-primary mb-2">
-          {character.kana}
-        </h1>
-        <h1 className="sm:hidden text-4xl font-bold text-primary mb-2">
-          {character.kana}
-        </h1>
-        <div className="text-sm text-base-content/70">
-          <span className="font-medium">
-            Stroke {currentStrokeIndex + 1} of {character.strokes.length}
-          </span>
-        </div>
-      </div>
-
-      {/* Message - Fixed height container to prevent layout shifts */}
-      <div className="h-16 flex items-center justify-center">
-        {message &&
-          // If this is the initial instruction, show it as an accent-styled CTA so it follows the brand
-          (message === "Draw the first stroke!" && isCorrectStroke === null ? (
-            <button className="btn btn-primary">{message}</button>
-          ) : (
-            <div
-              role="alert"
-              className={`alert ${
-                isCorrectStroke === true
-                  ? "alert-success"
-                  : isCorrectStroke === false
-                  ? "alert-error"
-                  : "alert-info"
-              } shadow-md transition-all duration-200`}
+    <div className="flex justify-center w-full p-2">
+      <div className="flex flex-col md:flex-row items-center md:items-start md:gap-8 gap-1">
+        <div className="order-1 flex flex-col items-center md:items-start gap-2 w-full md:w-auto md:max-w-xs">
+          {/* Character Selector */}
+          <div className="form-control w-full max-w-xs text-center md:text-left">
+            <label className="label justify-center md:justify-start">
+              <span className="label-text">Select Character</span>
+            </label>
+            <select
+              className="select select-bordered"
+              value={character.kana}
+              onChange={(e) => handleCharacterSelect(e.target.value)}
             >
-              <span>{message}</span>
+              {hiraganaData.map((char) => (
+                <option key={char.kana} value={char.kana}>
+                  {char.kana} ({char.romaji})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Character Display */}
+          <div className="text-center md:text-left w-full max-w-xs">
+            <h1 className="hidden sm:block text-6xl font-bold text-primary mb-2">
+              {character.kana}
+            </h1>
+            <h1 className="sm:hidden text-4xl font-bold text-primary mb-2">
+              {character.kana}
+            </h1>
+            <div className="text-sm text-base-content/70">
+              <span className="font-medium">
+                Stroke {currentStrokeIndex + 1} of {character.strokes.length}
+              </span>
             </div>
-          ))}
-      </div>
+          </div>
 
-      {/* Canvas */}
-      <div
-        className="relative border-2 border-gray-400 rounded-lg shadow-lg bg-white"
-        style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
-      >
-        {/* Stroke guides */}
-        <svg
-          className="absolute top-0 left-0 w-full h-full pointer-events-none"
-          viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
-        >
-          {character.strokes.map((stroke, index) => {
-            let strokeColor = COLOR_MUTED; // Future strokes (subtle gray)
-            let strokeOpacity = "0.3";
+          {/* Message - Fixed height container to prevent layout shifts */}
+          <div className="h-16 flex items-center justify-center md:justify-start w-full max-w-xs">
+            {message &&
+              // If this is the initial instruction, show it as an accent-styled CTA so it follows the brand
+              (message === "Draw the first stroke!" &&
+              isCorrectStroke === null ? (
+                <button className="btn btn-primary">{message}</button>
+              ) : (
+                <div
+                  role="alert"
+                  className={`alert ${
+                    isCorrectStroke === true
+                      ? "alert-success"
+                      : isCorrectStroke === false
+                        ? "alert-error"
+                        : "alert-info"
+                  } shadow-md transition-all duration-200`}
+                >
+                  <span>{message}</span>
+                </div>
+              ))}
+          </div>
 
-            // Explicitly completed strokes are always green
-            if (completedStrokes.has(index)) {
-              strokeColor = COLOR_ACCENT2; // Completed strokes (Golden Ginkgo Yellow)
-              strokeOpacity = "0.85";
-            } else if (index === currentStrokeIndex) {
-              // Check if current stroke is completed
-              if (isCorrectStroke === true) {
-                strokeColor = COLOR_ACCENT2; // Completed stroke (Golden)
-                strokeOpacity = "0.95"; // Very visible when just completed
-              } else if (
-                isDrawing ||
-                isValidating ||
-                hasValidatedCurrentStroke.current
-              ) {
-                // Light primary guide while user is drawing/validating
-                strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
-                strokeOpacity = "0.12"; // Very light while drawing/validating
-              } else {
-                strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
-                strokeOpacity = "0.8"; // Visible when not drawing
-              }
-            }
+          {/* Progress */}
+          <div className="w-full max-w-xs text-center md:text-left">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Progress</span>
+              <span>
+                {currentStrokeIndex + 1} / {character.strokes.length}
+              </span>
+            </div>
+            <progress
+              className="progress progress-primary w-full progress-primary-custom"
+              value={currentStrokeIndex + 1}
+              max={character.strokes.length}
+            ></progress>
+          </div>
 
-            // compute start/end checkpoint positions
-            const startCheckpoint = stroke.checkpoints && stroke.checkpoints[0];
-            const endCheckpoint =
-              stroke.checkpoints &&
-              stroke.checkpoints[stroke.checkpoints.length - 1];
+          {/* Controls - Next Character for Desktop */}
+          <div className="hidden md:flex gap-4 w-full justify-start">
+            {isCorrectStroke === true && isLastStroke && (
+              <button
+                className="btn btn-accent btn-primary-custom"
+                onClick={handleNextCharacter}
+              >
+                Next Character
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="order-2  w-full md:w-auto flex justify-center md:justify-start">
+          <div
+            className="relative border-2 border-gray-400 rounded-lg shadow-lg bg-white"
+            style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
+          >
+            {/* Stroke guides */}
+            <svg
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
+            >
+              {character.strokes.map((stroke, index) => {
+                let strokeColor = COLOR_MUTED; // Future strokes (subtle gray)
+                let strokeOpacity = "0.3";
 
-            // Only show markers for the active (current) stroke and when it's not completed
-            const isActive =
-              index === currentStrokeIndex && !completedStrokes.has(index);
-            // Start marker pulses before user starts drawing; end marker pulses while drawing
-            const showStartMarker = isActive && !isDrawing;
-            const showEndMarker = isActive && isDrawing;
+                // Explicitly completed strokes are always green
+                if (completedStrokes.has(index)) {
+                  strokeColor = COLOR_ACCENT2; // Completed strokes (Golden Ginkgo Yellow)
+                  strokeOpacity = "0.85";
+                } else if (index === currentStrokeIndex) {
+                  // Check if current stroke is completed
+                  if (isCorrectStroke === true) {
+                    strokeColor = COLOR_ACCENT2; // Completed stroke (Golden)
+                    strokeOpacity = "0.95"; // Very visible when just completed
+                  } else if (
+                    isDrawing ||
+                    isValidating ||
+                    hasValidatedCurrentStroke.current
+                  ) {
+                    // Light primary guide while user is drawing/validating
+                    strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
+                    strokeOpacity = "0.12"; // Very light while drawing/validating
+                  } else {
+                    strokeColor = COLOR_PRIMARY; // Current active stroke (Deep Autumn Sky Blue)
+                    strokeOpacity = "0.8"; // Visible when not drawing
+                  }
+                }
 
-            return (
-              <g key={index} pointerEvents="none">
-                <path
-                  d={stroke.path}
-                  stroke={strokeColor}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  fill="none"
-                  opacity={strokeOpacity}
-                />
+                // compute start/end checkpoint positions
+                const startCheckpoint =
+                  stroke.checkpoints && stroke.checkpoints[0];
+                const endCheckpoint =
+                  stroke.checkpoints &&
+                  stroke.checkpoints[stroke.checkpoints.length - 1];
 
-                {/* Start marker: animated directional arrow when waiting to start */}
-                {startCheckpoint && isActive && (
-                  <g>
-                    {/* base dot */}
-                    <circle
-                      cx={startCheckpoint.x}
-                      cy={startCheckpoint.y}
-                      r={6}
-                      fill={strokeColor}
-                      stroke={COLOR_WHITE}
-                      strokeWidth={1.5}
-                      opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
-                    />
+                // Only show markers for the active (current) stroke and when it's not completed
+                const isActive =
+                  index === currentStrokeIndex && !completedStrokes.has(index);
+                // Start marker pulses before user starts drawing; end marker pulses while drawing
+                const showStartMarker = isActive && !isDrawing;
+                const showEndMarker = isActive && isDrawing;
 
-                    {showStartMarker &&
-                      (() => {
-                        // compute arrow direction using the second checkpoint if available
-                        // Prefer using the SVG path tangent for the most accurate initial direction
-                        let angle = 0;
-                        try {
-                          // Create a temporary SVG path element to sample the path tangent
-                          const svgNS = "http://www.w3.org/2000/svg";
-                          const tmpPath = document.createElementNS(
-                            svgNS,
-                            "path"
-                          );
-                          tmpPath.setAttribute("d", stroke.path);
-                          const total = tmpPath.getTotalLength();
-                          // sample a small distance along the path to estimate the tangent
-                          const sampleDist = Math.min(
-                            8,
-                            Math.max(1, total * 0.01)
-                          );
-                          const p0 = tmpPath.getPointAtLength(0);
-                          const p1 = tmpPath.getPointAtLength(sampleDist);
-                          angle =
-                            (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) /
-                            Math.PI;
-                        } catch {
-                          // Fallback: average next few checkpoints (robust but less accurate)
-                          const checkpoints: Checkpoint[] =
-                            stroke.checkpoints || [];
-                          const subsequent = checkpoints.slice(1, 4); // take up to next 3 checkpoints
-                          let dx = 10;
-                          let dy = 0;
-                          if (subsequent.length > 0) {
-                            const avg = subsequent.reduce(
-                              (acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }),
-                              { x: 0, y: 0 }
-                            );
-                            avg.x = avg.x / subsequent.length;
-                            avg.y = avg.y / subsequent.length;
-                            dx = avg.x - startCheckpoint.x;
-                            dy = avg.y - startCheckpoint.y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            // if the averaged vector is too small, fallback to the end checkpoint
-                            if (dist < 2 && endCheckpoint) {
-                              dx = endCheckpoint.x - startCheckpoint.x;
-                              dy = endCheckpoint.y - startCheckpoint.y;
-                            }
-                          } else if (endCheckpoint) {
-                            dx = endCheckpoint.x - startCheckpoint.x;
-                            dy = endCheckpoint.y - startCheckpoint.y;
-                          }
-
-                          angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-                        }
-
-                        return (
-                          <g
-                            transform={`translate(${startCheckpoint.x}, ${startCheckpoint.y}) rotate(${angle})`}
-                          >
-                            {/* inner group will animate translate along local x-axis so arrow moves in direction of stroke */}
-                            <g>
-                              {/* arrow shape anchored at origin (0,0) pointing right before rotation */}
-                              <path
-                                d="M 0 -6 L 14 0 L 0 6 L 4 0 Z"
-                                fill={strokeColor}
-                                opacity="0.95"
-                              />
-                              {/* animate the inner group's translate along x only (local axis after rotation) */}
-                              <animateTransform
-                                attributeName="transform"
-                                type="translate"
-                                values="0 0; 10 0; 0 0"
-                                dur="1.5s"
-                                repeatCount="indefinite"
-                              />
-                            </g>
-                          </g>
-                        );
-                      })()}
-                  </g>
-                )}
-
-                {/* End marker: ring with pulsing halo while drawing */}
-                {endCheckpoint && isActive && (
-                  <g>
-                    <circle
-                      cx={endCheckpoint.x}
-                      cy={endCheckpoint.y}
-                      r={6}
-                      fill="transparent"
+                return (
+                  <g key={index} pointerEvents="none">
+                    <path
+                      d={stroke.path}
                       stroke={strokeColor}
-                      strokeWidth={3}
-                      opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                      opacity={strokeOpacity}
                     />
 
-                    {showEndMarker && (
-                      <circle
-                        cx={endCheckpoint.x}
-                        cy={endCheckpoint.y}
-                        r={12}
-                        fill={COLOR_PRIMARY}
-                        opacity={0.18}
-                      >
-                        <animate
-                          attributeName="r"
-                          from="12"
-                          to="30"
-                          dur="1.5s"
-                          repeatCount="indefinite"
+                    {/* Start marker: animated directional arrow when waiting to start */}
+                    {startCheckpoint && isActive && (
+                      <g>
+                        {/* base dot */}
+                        <circle
+                          cx={startCheckpoint.x}
+                          cy={startCheckpoint.y}
+                          r={6}
+                          fill={strokeColor}
+                          stroke={COLOR_WHITE}
+                          strokeWidth={1.5}
+                          opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
                         />
-                        <animate
-                          attributeName="opacity"
-                          values="0.3;0"
-                          dur="1.5s"
-                          repeatCount="indefinite"
+
+                        {showStartMarker &&
+                          (() => {
+                            // compute arrow direction using the second checkpoint if available
+                            // Prefer using the SVG path tangent for the most accurate initial direction
+                            let angle = 0;
+                            try {
+                              // Create a temporary SVG path element to sample the path tangent
+                              const svgNS = "http://www.w3.org/2000/svg";
+                              const tmpPath = document.createElementNS(
+                                svgNS,
+                                "path",
+                              );
+                              tmpPath.setAttribute("d", stroke.path);
+                              const total = tmpPath.getTotalLength();
+                              // sample a small distance along the path to estimate the tangent
+                              const sampleDist = Math.min(
+                                8,
+                                Math.max(1, total * 0.01),
+                              );
+                              const p0 = tmpPath.getPointAtLength(0);
+                              const p1 = tmpPath.getPointAtLength(sampleDist);
+                              angle =
+                                (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) /
+                                Math.PI;
+                            } catch {
+                              // Fallback: average next few checkpoints (robust but less accurate)
+                              const checkpoints: Checkpoint[] =
+                                stroke.checkpoints || [];
+                              const subsequent = checkpoints.slice(1, 4); // take up to next 3 checkpoints
+                              let dx = 10;
+                              let dy = 0;
+                              if (subsequent.length > 0) {
+                                const avg = subsequent.reduce(
+                                  (acc, p) => ({
+                                    x: acc.x + p.x,
+                                    y: acc.y + p.y,
+                                  }),
+                                  { x: 0, y: 0 },
+                                );
+                                avg.x = avg.x / subsequent.length;
+                                avg.y = avg.y / subsequent.length;
+                                dx = avg.x - startCheckpoint.x;
+                                dy = avg.y - startCheckpoint.y;
+                                const dist = Math.sqrt(dx * dx + dy * dy);
+                                // if the averaged vector is too small, fallback to the end checkpoint
+                                if (dist < 2 && endCheckpoint) {
+                                  dx = endCheckpoint.x - startCheckpoint.x;
+                                  dy = endCheckpoint.y - startCheckpoint.y;
+                                }
+                              } else if (endCheckpoint) {
+                                dx = endCheckpoint.x - startCheckpoint.x;
+                                dy = endCheckpoint.y - startCheckpoint.y;
+                              }
+
+                              angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+                            }
+
+                            return (
+                              <g
+                                transform={`translate(${startCheckpoint.x}, ${startCheckpoint.y}) rotate(${angle})`}
+                              >
+                                {/* inner group will animate translate along local x-axis so arrow moves in direction of stroke */}
+                                <g>
+                                  {/* arrow shape anchored at origin (0,0) pointing right before rotation */}
+                                  <path
+                                    d="M 0 -6 L 14 0 L 0 6 L 4 0 Z"
+                                    fill={strokeColor}
+                                    opacity="0.95"
+                                  />
+                                  {/* animate the inner group's translate along x only (local axis after rotation) */}
+                                  <animateTransform
+                                    attributeName="transform"
+                                    type="translate"
+                                    values="0 0; 10 0; 0 0"
+                                    dur="1.5s"
+                                    repeatCount="indefinite"
+                                  />
+                                </g>
+                              </g>
+                            );
+                          })()}
+                      </g>
+                    )}
+
+                    {/* End marker: ring with pulsing halo while drawing */}
+                    {endCheckpoint && isActive && (
+                      <g>
+                        <circle
+                          cx={endCheckpoint.x}
+                          cy={endCheckpoint.y}
+                          r={6}
+                          fill="transparent"
+                          stroke={strokeColor}
+                          strokeWidth={3}
+                          opacity={Math.min(Number(strokeOpacity) + 0.2, 1)}
                         />
-                      </circle>
+
+                        {showEndMarker && (
+                          <circle
+                            cx={endCheckpoint.x}
+                            cy={endCheckpoint.y}
+                            r={12}
+                            fill={COLOR_PRIMARY}
+                            opacity={0.18}
+                          >
+                            <animate
+                              attributeName="r"
+                              from="12"
+                              to="30"
+                              dur="1.5s"
+                              repeatCount="indefinite"
+                            />
+                            <animate
+                              attributeName="opacity"
+                              values="0.3;0"
+                              dur="1.5s"
+                              repeatCount="indefinite"
+                            />
+                          </circle>
+                        )}
+                      </g>
                     )}
                   </g>
-                )}
-              </g>
-            );
-          })}
+                );
+              })}
 
-          {/* Success tick mark when all strokes completed */}
-          {isCorrectStroke === true && isLastStroke && (
-            <g>
-              <circle
-                cx={CANVAS_WIDTH - 50}
-                cy="50"
-                r="25"
-                fill={COLOR_SUCCESS}
-                opacity="0.95"
+              {/* Success tick mark when all strokes completed */}
+              {isCorrectStroke === true && isLastStroke && (
+                <g>
+                  <circle
+                    cx={CANVAS_WIDTH - 50}
+                    cy="50"
+                    r="25"
+                    fill={COLOR_SUCCESS}
+                    opacity="0.95"
+                  />
+                  <path
+                    d="M 340 50 L 348 58 L 365 42"
+                    stroke="white"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </g>
+              )}
+            </svg>
+
+            {/* Drawing canvas */}
+            <div
+              onMouseUp={handleDrawEnd}
+              onTouchEnd={handleDrawEnd}
+              className="absolute top-0 left-0 w-full h-full"
+            >
+              <ReactSketchCanvas
+                ref={canvasRef}
+                width={String(CANVAS_WIDTH)}
+                height={String(CANVAS_HEIGHT)}
+                strokeWidth={6}
+                strokeColor={COLOR_PRIMARY}
+                canvasColor="transparent"
+                className="w-full h-full rounded-lg"
+                onStroke={handleDrawStart}
+                withTimestamp={false}
+                style={{ width: "100%", height: "100%" }}
               />
-              <path
-                d="M 340 50 L 348 58 L 365 42"
-                stroke="white"
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </g>
-          )}
-        </svg>
 
-        {/* Drawing canvas */}
-        <div
-          onMouseUp={handleDrawEnd}
-          onTouchEnd={handleDrawEnd}
-          className="absolute top-0 left-0 w-full h-full"
-        >
-          <ReactSketchCanvas
-            ref={canvasRef}
-            width={String(CANVAS_WIDTH)}
-            height={String(CANVAS_HEIGHT)}
-            strokeWidth={6}
-            strokeColor={COLOR_PRIMARY}
-            canvasColor="transparent"
-            className="w-full h-full rounded-lg"
-            onStroke={handleDrawStart}
-            withTimestamp={false}
-            style={{ width: "100%", height: "100%" }}
-          />
+              {/* Disable overlay during validation */}
+              {(isValidating || isCorrectStroke === true) && (
+                <div className="absolute top-0 left-0 w-full h-full bg-transparent cursor-not-allowed z-10" />
+              )}
+            </div>
 
-          {/* Disable overlay during validation */}
-          {(isValidating || isCorrectStroke === true) && (
-            <div className="absolute top-0 left-0 w-full h-full bg-transparent cursor-not-allowed z-10" />
-          )}
+            {/* Mobile Next Character Arrow Overlay */}
+            <OverlayArrowButton
+              onClick={handleNextCharacter}
+              position="middle-right"
+              size="md"
+              ariaLabel="Next Character"
+              show={isCorrectStroke === true && isLastStroke}
+              hideOnDesktop={true}
+            />
+          </div>
         </div>
-
-        {/* Mobile Next Character Arrow Overlay */}
-        <OverlayArrowButton
-          onClick={handleNextCharacter}
-          position="middle-right"
-          size="md"
-          ariaLabel="Next Character"
-          show={isCorrectStroke === true && isLastStroke}
-          hideOnDesktop={true}
-        />
-      </div>
-
-      {/* Controls - Next Character for Desktop */}
-      <div className="hidden md:flex gap-4 w-full justify-center">
-        {isCorrectStroke === true && isLastStroke && (
-          <button
-            className="btn btn-accent btn-primary-custom"
-            onClick={handleNextCharacter}
-          >
-            Next Character
-          </button>
-        )}
-      </div>
-
-      {/* Progress */}
-      <div className="w-full max-w-xs">
-        <div className="flex justify-between text-sm mb-1">
-          <span>Progress</span>
-          <span>
-            {currentStrokeIndex + 1} / {character.strokes.length}
-          </span>
-        </div>
-        <progress
-          className="progress progress-primary w-full progress-primary-custom"
-          value={currentStrokeIndex + 1}
-          max={character.strokes.length}
-        ></progress>
       </div>
     </div>
   );
